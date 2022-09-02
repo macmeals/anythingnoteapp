@@ -3,12 +3,18 @@
 
 import React from "react";
 import originLogo from "../src/img/logo.png";
-import todoicon from "../src/img/todoicon.png";
 import "./App.css";
 
-// emotionでスタイリング
-import { css } from "@emotion/react";
-import styled from "@emotion/styled";
+// 画面変移の為のReactRouterDomを
+import { BrowserRouter } from "react-router-dom";
+import { Router } from "./router/Router";
+
+// リセットCSSの為、Globalコンポーネントをインポート
+// cssコンポーネントもインポート
+import { Global, css } from "@emotion/react";
+
+// リセットCSSを適応する(emotion-reset)
+import resetCSS from "emotion-reset";
 
 const logoStyle = css({
   width: 200,
@@ -28,48 +34,30 @@ const appStyle = css({
   justifyContent: "center",
 });
 
-const contentBackgroud = css({
-  // background: "red",
-  background: ["linear-gradient(#008076, #004A80)"],
-  width: "100vw",
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-});
-
-const loginCard = css({
-  width: 520,
-  height: 600,
-  backgroundColor: "white",
-});
-
-const fontSize = css({
-  fontSize: "32px",
-});
-
-// 改行の為のCSS
-const textNewLine = css({
-  whiteSpace: "pre-wrap",
-});
-
 function App() {
   return (
     <div>
+      {/* emotion-resetを適応する */}
+      <Global
+        styles={css`
+          ${resetCSS}
+          *, *::after, *::before {
+            box-sizing: border-box;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;
+            font-smoothing: antialiased;
+          }
+        `}
+      />
+
       <header css={appStyle}>
         <div css={headerContent}>
           <img src={originLogo} css={logoStyle} alt="logo" />
         </div>
       </header>
-      <div css={contentBackgroud}>
-        <div css={loginCard}>
-          <p>
-            できるのは<span css={fontSize}>『これだけ』</span>です
-          </p>
-          <p css={textNewLine}>{`やること\n管理`}</p>
-          <img src={todoicon} alt="todoのアイコン" />
-        </div>
-      </div>
+      <BrowserRouter>
+        <Router />
+      </BrowserRouter>
     </div>
   );
 }
