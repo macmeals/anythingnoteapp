@@ -125,7 +125,6 @@ export const TopPage = () => {
           <p css={textBox}>
             できるのは<span css={fontSize}>『これだけ』</span>です
           </p>
-          {/* <p css={textNewLine}>{`やること\n管理`}</p> */}
           <StodoIconGroup>
             <p>やること</p>
             <p>管理</p>
