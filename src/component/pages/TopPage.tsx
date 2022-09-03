@@ -9,7 +9,7 @@ import styled from "@emotion/styled";
 import todoicon from "../../img/todoicon.png";
 
 // axiosをインポート
-import axios from "axios"
+import axios from "axios";
 
 const contentBackgroud = css({
   // background: "red",
@@ -105,18 +105,18 @@ const signInButton = css({
 });
 
 export const TopPage = () => {
-  const login = () => {
+  // const login = () => {
 
-    //JWT情報を取得する。
-    try {
-      const JWT = await axios.post(
-        "https://raisetech-memo-api.herokuapp.com/api/login",
-        authData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-  };
+  //   //JWT情報を取得する。
+  //   try {
+  //     const JWT = await axios.post(
+  //       "https://raisetech-memo-api.herokuapp.com/api/login",
+  //       authData,
+  //       {
+  //         headers: { "Content-Type": "application/json" },
+  //       }
+  //     );
+  // };
 
   return (
     <div>
@@ -137,9 +137,10 @@ export const TopPage = () => {
             <input css={inputStyle} type="password" placeholder="PASSWORD" />
             <input css={signInButton} type="submit" value="サインイン" />
           </form>
-          {
+          {/* {
             errMassage && <p>パスワードもしくはIDが違います。</p> // エラーがあった場合、エラー文言{errMassage}を表示する
-          }
+          } */}
+          <p>※サインインできない方は管理者にお問い合わせ下さい。</p>
         </div>
       </div>
     </div>
