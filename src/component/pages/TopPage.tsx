@@ -8,12 +8,17 @@ import styled from "@emotion/styled";
 // アイコンのイメージを取り出す
 import todoicon from "../../img/todoicon.png";
 
-// axiosをインポート
-import axios from "axios";
+// Recoil(グローバルState)をインポート
+import { useRecoilValue } from "recoil";
+// atomをインポート
+import { UserEmail } from "../../atom/UserEmail";
+import { UserPass } from "../../atom/UserPass";
+import { ErrMessage } from "../../atom/ErrMessage";
+
+// カスタムHookをインポート
+import { useSignIn } from "../../hook/useSignIn";
 
 const contentBackgroud = css({
-  // background: "red",
-  // background: ["linear-gradient(#008076, #004A80)"],
   background: [
     "linear-gradient(180deg, rgba(0, 128, 118, 0.25) 0%, rgba(0, 74, 128, 0.25) 100%)",
   ],
@@ -47,11 +52,6 @@ const fontSize = css({
   fontSize: "32px",
 });
 
-// 改行の為のCSS
-// const textNewLine = css({
-//   whiteSpace: "pre-wrap",
-// });
-
 const StodoIconGroup = styled("div")`
   margin: 25px 0 25px 0;
   display: flex;
@@ -63,13 +63,6 @@ const StodoIconGroup = styled("div")`
     margin-bottom: 5px;
   }
 `;
-
-// const todoIconGroup = css({
-//   margin: "25px 0 25px 0",
-//   display: "flex",
-//   flexDirection: "column",
-//   alignItems: "center",
-// });
 
 const todoIcon = css({
   width: 100,
@@ -105,18 +98,12 @@ const signInButton = css({
 });
 
 export const TopPage = () => {
-  // const login = () => {
-
-  //   //JWT情報を取得する。
-  //   try {
-  //     const JWT = await axios.post(
-  //       "https://raisetech-memo-api.herokuapp.com/api/login",
-  //       authData,
-  //       {
-  //         headers: { "Content-Type": "application/json" },
-  //       }
-  //     );
-  // };
+  //各atomよりvalue、値を取り出す。
+  const userEmail = useRecoilValue<string>(UserEmail);
+  const userPass = useRecoilValue<string>(UserPass);
+  const errMessage = useRecoilValue<string>(ErrMessage);
+  // カスタムHook（useSignIn)から各種関数をインポート
+  const { onUserEmail, onUserPass, signInUser } = useSignIn();
 
   return (
     <div>
@@ -132,13 +119,39 @@ export const TopPage = () => {
           </StodoIconGroup>
           <p css={signStyle}>サインイン</p>
           <form css={formStyle}>
-            <input css={inputStyle} type="text" placeholder="ID" />
-            <input css={inputStyle} type="password" placeholder="PASSWORD" />
-            <input css={signInButton} type="submit" value="サインイン" />
+            <input
+              onChange={onUserEmail}
+              value={userEmail}
+              css={inputStyle}
+              type="text"
+              placeholder="ID"
+            />
+            <input
+              onChange={onUserPass}
+              value={userPass}
+              css={inputStyle}
+              type="password"
+              placeholder="PASSWORD"
+            />
+            <input
+              onClick={() => {
+                signInUser();
+              }}
+              css={signInButton}
+              type="submit"
+              value="サインイン"
+            />
           </form>
-          {/* {
-            errMassage && <p>パスワードもしくはIDが違います。</p> // エラーがあった場合、エラー文言{errMassage}を表示する
-          } */}
+          <button
+            onClick={() => {
+              signInUser();
+            }}
+          >
+            JWT取得
+          </button>
+          {
+            errMessage && <p>パスワードもしくはIDが違います。</p> // エラーがあった場合、エラー文言{errMassage}を表示する
+          }
           <p>※サインインできない方は管理者にお問い合わせ下さい。</p>
         </div>
       </div>
