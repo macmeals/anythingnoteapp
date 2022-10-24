@@ -1,6 +1,8 @@
 // "@emotion/react"には以下が必須
 /** @jsxImportSource @emotion/react */
 
+import { useEffect } from "react";
+
 // emotionでスタイリング
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -38,6 +40,7 @@ const loginCard = css({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  position: "relative",
 });
 
 const textBox = css({
@@ -80,7 +83,7 @@ const formStyle = css({
   alignItems: "center",
   justifyContent: "space-between",
   width: 360,
-  height: 150,
+  height: 104,
 });
 
 const inputStyle = css({
@@ -89,6 +92,7 @@ const inputStyle = css({
 });
 
 const signInButton = css({
+  marginTop: "12px",
   width: 360,
   height: 46,
   background: ["linear-gradient(180deg, #728D8B 0%, #25618C 100%)"],
@@ -97,6 +101,23 @@ const signInButton = css({
   fontSize: "24px",
 });
 
+const cautionText = css({
+  marginTop: "20px",
+  color: "red",
+});
+
+const errorText = css({
+  position: "absolute",
+  top: 550,
+  left: 80,
+  fontSize: "14px",
+});
+
+type Token = {
+  Token: string;
+  NowTime: number;
+};
+
 export const TopPage = () => {
   //各atomよりvalue、値を取り出す。
   const userEmail = useRecoilValue<string>(UserEmail);
@@ -104,6 +125,29 @@ export const TopPage = () => {
   const errMessage = useRecoilValue<string>(ErrMessage);
   // カスタムHook（useSignIn)から各種関数をインポート
   const { onUserEmail, onUserPass, signInUser } = useSignIn();
+
+  // レンダリング時に24時間経過したトークンを消す
+  useEffect(() => {
+    // ローカルストレージよりJWTの認証情報（AccessToken)をLocalStorageより取得する。
+    // tokenStringを一旦Any型に変換し、そのあと型Tokenを割り当てる
+    const tokenString: any = localStorage.getItem("AccessToken");
+
+    if (tokenString) {
+      // ローカルストレージに保存したトークンをオブジェクトにした後、
+      // 作成時間を取得する
+      const Token: Token = JSON.parse(tokenString);
+      const nowTime = Token.NowTime;
+
+      // ローカルストレージに保存したトークンをオブジェクトにした後、
+      // レンダリングした際の時間を取得する(時間で換算)
+      const renderTime = new Date().getTime() / 1000 / 60 / 60;
+
+      // 24時間以上離れたらローカルストレージを削除する。
+      if (renderTime - nowTime >= 24) {
+        localStorage.removeItem("AccessToken");
+      }
+    }
+  }, []);
 
   return (
     <div>
@@ -133,26 +177,23 @@ export const TopPage = () => {
               type="password"
               placeholder="PASSWORD"
             />
-            <input
-              onClick={() => {
-                signInUser();
-              }}
-              css={signInButton}
-              type="submit"
-              value="サインイン"
-            />
           </form>
           <button
+            css={signInButton}
             onClick={() => {
               signInUser();
             }}
           >
-            JWT取得
+            サインイン
           </button>
           {
-            errMessage && <p>パスワードもしくはIDが違います。</p> // エラーがあった場合、エラー文言{errMassage}を表示する
+            errMessage && (
+              <p css={cautionText}>パスワードもしくはIDが違います。</p>
+            ) // エラーがあった場合、エラー文言{errMassage}を表示する
           }
-          <p>※サインインできない方は管理者にお問い合わせ下さい。</p>
+          <p css={errorText}>
+            ※サインインできない方は管理者にお問い合わせ下さい。
+          </p>
         </div>
       </div>
     </div>
