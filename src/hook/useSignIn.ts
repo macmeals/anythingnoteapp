@@ -33,7 +33,9 @@ export const useSignIn = () => {
         "https://raisetech-memo-api.herokuapp.com/api/login",
         { email: userEmail, password: userPass },
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 

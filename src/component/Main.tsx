@@ -1,4 +1,5 @@
-// "@emotion/react"には以下が必須
+// とりあえずanyで型付け
+
 /** @jsxImportSource @emotion/react */
 
 // emotionでスタイリング
@@ -7,9 +8,17 @@ import styled from "@emotion/styled";
 
 import { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { todoData } from "../todoData";
+
+// データをインポート
+// import { todoData } from "../todoData";
 import { Card } from "../component/Card";
 
+// Recoilをインポート
+import { todoDataRecoil } from "../atom/todoData";
+import { useRecoilState } from "recoil";
+
+//メッセージを表示させる（react-toastifyライブラリ）
+import { toast } from "react-toastify";
 // react-beautiful-dnd の型をImport
 import type {
   DropResult,
@@ -106,7 +115,8 @@ const Scomplete = styled("div")`
 
 export const Main = () => {
   // tododataを全て受け取る ->これが大元
-  const [todo, setTodo] = useState(todoData);
+  // const [todo, setTodo] = useState(todoData);
+  const [todos, setTodos] = useRecoilState(todoDataRecoil);
 
   const onDragEnd = (result: any) => {
     // 移動元と移動先の情報を受け取り、変数source, destinationへ代入
@@ -115,18 +125,18 @@ export const Main = () => {
     //別のカラムにタスクが移動した時
     if (source.droppableId !== destination.droppableId) {
       // 元データのカラムのインデックスを取得。
-      const sourceColIndex = todo.findIndex(
+      const sourceColIndex = todos.findIndex(
         (e: any) => e.id === source.droppableId
       );
       // 移動先のカラムのインデックスを取得。
-      const destinationColIndex = todo.findIndex(
+      const destinationColIndex = todos.findIndex(
         (e: any) => e.id === destination.droppableId
       );
 
       // 元データのカラムの全データを取得
-      const sourceCol = todo[sourceColIndex];
+      const sourceCol = todos[sourceColIndex];
       // 移動先のデータのカラムの全データを取得
-      const distinationCol = todo[destinationColIndex];
+      const distinationCol = todos[destinationColIndex];
 
       // 元データのカラムのタスクを配列型で代入
       const sourceTask = [...sourceCol.task];
@@ -137,27 +147,30 @@ export const Main = () => {
       // [removed]の形式で入れないとオブジェクト形式に入れられないので、注意！
       const [removed] = sourceTask.splice(source.index, 1);
       console.log(removed);
+      console.log(sourceTask);
+      console.log(distinationTask);
 
       // 移動先のカラムへ移動してくるタスクを導入
       distinationTask.splice(destination.index, 0, removed);
 
       //対象のカラムのタスクに加工したタスクを代入（Source、Destionationのカラム）
-      todo[sourceColIndex].task = sourceTask; //移動元のカラムのタスクを更新
-      todo[destinationColIndex].task = distinationTask; //移動先のカラムのタスクを更新
+      todos[sourceColIndex].task = sourceTask; //移動元のカラムのタスクを更新
+      todos[destinationColIndex].task = distinationTask; //移動先のカラムのタスクを更新
+      console.log(todos);
 
       //更新したtodoをState更新
-      setTodo(todo);
+      setTodos(todos);
 
       // 同一カラムでのタスク移動
     } else {
       // 元データのカラムのインデックスを取得。
-      const sourceColIndex = todo.findIndex(
+      const sourceColIndex = todos.findIndex(
         (e: any) => e.id === source.droppableId
       );
       console.log(sourceColIndex);
 
       //元データのカラムのデータを取得
-      const sourceCol = todo[sourceColIndex];
+      const sourceCol = todos[sourceColIndex];
       console.log(sourceCol);
 
       //変更するタスク一覧を取得
@@ -170,37 +183,37 @@ export const Main = () => {
       sourceTask.splice(destination.index, 0, removed);
 
       //対象のカラムのタスクに加工したタスクを代入
-      todo[sourceColIndex].task = sourceTask;
+      todos[sourceColIndex].task = sourceTask;
       //更新したtodoをState更新
-      setTodo(todo);
+      setTodos(todos);
     }
   };
 
-  const onDeleteTodo = (itemsId: any, taskID: any) => {
-    const deleteTodos = [...todo];
+  const onDeleteTodo = (itemsId: string, taskID: string) => {
+    const deleteTodos = [...todos];
     // 削除対象の列のカラムの添字を取得
     const itemCol = deleteTodos.findIndex((e) => e.id === itemsId);
     // 削除対象の列のカラムのタスク一覧を取得
     const deleteTodo = deleteTodos[itemCol].task;
 
     // 削除対象のタスクの添字（Index番号）を取得
-    const todoCol = deleteTodo.findIndex((e) => e.id === taskID);
+    const todoCol = deleteTodo.findIndex((e: any) => e.id === taskID);
 
-    // 削除対象のタスクの添字（Index番号）を取得
+    // 削除対象のタスクの添字（Index番号）の要素を削除する
     deleteTodo.splice(todoCol, 1);
 
     // 削除した後のタスク一覧を元のタスク一覧に入れる
     deleteTodos[itemCol].task = deleteTodo;
 
     // ステート更新
-    setTodo(deleteTodos);
+    setTodos(deleteTodos);
   };
 
   return (
     <div css={layoutStyle}>
       <DragDropContext onDragEnd={onDragEnd}>
         <div css={todoStyle}>
-          {todo.map((items) => (
+          {todos.map((items: any) => (
             <Droppable key={items.id} droppableId={items.id}>
               {(provided: DroppableProvided) => (
                 <div
@@ -213,7 +226,7 @@ export const Main = () => {
                     <div>{items.title}</div>
                   </Stitle>
                   <div>
-                    {items.task.map((task, index: number) => (
+                    {items.task.map((task: any, index: number) => (
                       <Draggable
                         key={task.id}
                         draggableId={task.id}
@@ -256,6 +269,7 @@ export const Main = () => {
                         )}
                       </Draggable>
                     ))}
+                    <button>追加</button>
                     {provided.placeholder}
                   </div>
                 </div>
