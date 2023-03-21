@@ -1,7 +1,6 @@
 // "@emotion/react"には以下が必須
 /** @jsxImportSource @emotion/react */
 
-import React from "react";
 import originLogo from "../src/img/logo.png";
 import "./App.css";
 

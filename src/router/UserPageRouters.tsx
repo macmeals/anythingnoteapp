@@ -1,7 +1,7 @@
 import { Error404page } from "../component/pages/Error404Page";
-import { TopPage } from "../component/pages/TopPage";
+import { UserPage } from "../component/pages/UserPage";
 
 export const UserPageRoutes = [
-  { path: "", chidren: <TopPage /> },
+  { path: "", chidren: <UserPage /> },
   { path: "*", chidren: <Error404page /> },
 ];

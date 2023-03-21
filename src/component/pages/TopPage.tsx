@@ -1,6 +1,8 @@
 // "@emotion/react"には以下が必須
 /** @jsxImportSource @emotion/react */
 
+import { useEffect } from "react";
+
 // emotionでスタイリング
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -8,12 +10,17 @@ import styled from "@emotion/styled";
 // アイコンのイメージを取り出す
 import todoicon from "../../img/todoicon.png";
 
-// axiosをインポート
-import axios from "axios";
+// Recoil(グローバルState)をインポート
+import { useRecoilValue } from "recoil";
+// atomをインポート
+import { UserEmail } from "../../atom/UserEmail";
+import { UserPass } from "../../atom/UserPass";
+import { ErrMessage } from "../../atom/ErrMessage";
+
+// カスタムHookをインポート
+import { useSignIn } from "../../hook/useSignIn";
 
 const contentBackgroud = css({
-  // background: "red",
-  // background: ["linear-gradient(#008076, #004A80)"],
   background: [
     "linear-gradient(180deg, rgba(0, 128, 118, 0.25) 0%, rgba(0, 74, 128, 0.25) 100%)",
   ],
@@ -33,6 +40,7 @@ const loginCard = css({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  position: "relative",
 });
 
 const textBox = css({
@@ -47,11 +55,6 @@ const fontSize = css({
   fontSize: "32px",
 });
 
-// 改行の為のCSS
-// const textNewLine = css({
-//   whiteSpace: "pre-wrap",
-// });
-
 const StodoIconGroup = styled("div")`
   margin: 25px 0 25px 0;
   display: flex;
@@ -63,13 +66,6 @@ const StodoIconGroup = styled("div")`
     margin-bottom: 5px;
   }
 `;
-
-// const todoIconGroup = css({
-//   margin: "25px 0 25px 0",
-//   display: "flex",
-//   flexDirection: "column",
-//   alignItems: "center",
-// });
 
 const todoIcon = css({
   width: 100,
@@ -87,7 +83,7 @@ const formStyle = css({
   alignItems: "center",
   justifyContent: "space-between",
   width: 360,
-  height: 150,
+  height: 104,
 });
 
 const inputStyle = css({
@@ -96,6 +92,7 @@ const inputStyle = css({
 });
 
 const signInButton = css({
+  marginTop: "12px",
   width: 360,
   height: 46,
   background: ["linear-gradient(180deg, #728D8B 0%, #25618C 100%)"],
@@ -104,19 +101,53 @@ const signInButton = css({
   fontSize: "24px",
 });
 
-export const TopPage = () => {
-  // const login = () => {
+const cautionText = css({
+  marginTop: "20px",
+  color: "red",
+});
 
-  //   //JWT情報を取得する。
-  //   try {
-  //     const JWT = await axios.post(
-  //       "https://raisetech-memo-api.herokuapp.com/api/login",
-  //       authData,
-  //       {
-  //         headers: { "Content-Type": "application/json" },
-  //       }
-  //     );
-  // };
+const errorText = css({
+  position: "absolute",
+  top: 550,
+  left: 80,
+  fontSize: "14px",
+});
+
+type Token = {
+  Token: string;
+  NowTime: number;
+};
+
+export const TopPage = () => {
+  //各atomよりvalue、値を取り出す。
+  const userEmail = useRecoilValue<string>(UserEmail);
+  const userPass = useRecoilValue<string>(UserPass);
+  const errMessage = useRecoilValue<string>(ErrMessage);
+  // カスタムHook（useSignIn)から各種関数をインポート
+  const { onUserEmail, onUserPass, signInUser } = useSignIn();
+
+  // レンダリング時に24時間経過したトークンを消す
+  useEffect(() => {
+    // ローカルストレージよりJWTの認証情報（AccessToken)をLocalStorageより取得する。
+    // tokenStringを一旦Any型に変換し、そのあと型Tokenを割り当てる
+    const tokenString: any = localStorage.getItem("AccessToken");
+
+    if (tokenString) {
+      // ローカルストレージに保存したトークンをオブジェクトにした後、
+      // 作成時間を取得する
+      const Token: Token = JSON.parse(tokenString);
+      const nowTime = Token.NowTime;
+
+      // ローカルストレージに保存したトークンをオブジェクトにした後、
+      // レンダリングした際の時間を取得する(時間で換算)
+      const renderTime = new Date().getTime() / 1000 / 60 / 60;
+
+      // 24時間以上離れたらローカルストレージを削除する。
+      if (renderTime - nowTime >= 24) {
+        localStorage.removeItem("AccessToken");
+      }
+    }
+  }, []);
 
   return (
     <div>
@@ -125,7 +156,6 @@ export const TopPage = () => {
           <p css={textBox}>
             できるのは<span css={fontSize}>『これだけ』</span>です
           </p>
-          {/* <p css={textNewLine}>{`やること\n管理`}</p> */}
           <StodoIconGroup>
             <p>やること</p>
             <p>管理</p>
@@ -133,14 +163,37 @@ export const TopPage = () => {
           </StodoIconGroup>
           <p css={signStyle}>サインイン</p>
           <form css={formStyle}>
-            <input css={inputStyle} type="text" placeholder="ID" />
-            <input css={inputStyle} type="password" placeholder="PASSWORD" />
-            <input css={signInButton} type="submit" value="サインイン" />
+            <input
+              onChange={onUserEmail}
+              value={userEmail}
+              css={inputStyle}
+              type="text"
+              placeholder="ID"
+            />
+            <input
+              onChange={onUserPass}
+              value={userPass}
+              css={inputStyle}
+              type="password"
+              placeholder="PASSWORD"
+            />
           </form>
-          {/* {
-            errMassage && <p>パスワードもしくはIDが違います。</p> // エラーがあった場合、エラー文言{errMassage}を表示する
-          } */}
-          <p>※サインインできない方は管理者にお問い合わせ下さい。</p>
+          <button
+            css={signInButton}
+            onClick={() => {
+              signInUser();
+            }}
+          >
+            サインイン
+          </button>
+          {
+            errMessage && (
+              <p css={cautionText}>パスワードもしくはIDが違います。</p>
+            ) // エラーがあった場合、エラー文言{errMassage}を表示する
+          }
+          <p css={errorText}>
+            ※サインインできない方は管理者にお問い合わせ下さい。
+          </p>
         </div>
       </div>
     </div>
